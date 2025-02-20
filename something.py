@@ -33,12 +33,12 @@
 
 # It will then call insert_rule which will use your rbe_insert.py script. You should have all of the arguments at that point.
 
-
+import importlib.util
 import subprocess
 import sys
 import os 
-# from ir_compiler import main.py # ummmmmmmmmmmm i'll figure it out later 
-import rbe_insert.py 
+from ir_compiler import *  
+import rbe_insert
 
 # need to change, doesn't look right 
 # def create_new_rule(rule_num:int) -> None: 
@@ -84,15 +84,16 @@ def insert_rule(c_source:str, ir_tokens:list[str], rbe_file, rule_num:list) -> N
     print(f"Inserted rule into {rbe_file} at line {rule_num}.")
     
     
-# this need to call the IR compiler from the ir_compiler folder on the given c source file.
+# this need to call the main.py from the ir_compiler folder on the given c source file.
 # and returns the IR tokens as a list of strings. 
 def compile(c_source:str) -> list[str]: 
-    ir_tokens = ir_complier.main(c_source) # calls the compiler's main function, need to figure out how to call 
+    ir_tokens = main.main(c_source)
+    
     with open("ir_tokens.txt", "w") as f: 
         f.write(" ".join(ir_tokens))
+        
     print(f"Compiled {c_source} into IR tokens.")
     return ir_tokens
-    
     
 def preprocess(ir_tokens:list[str], function_details) -> ir_tokens:
     # convert IR tokens to RBE clauses 
