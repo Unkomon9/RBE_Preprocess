@@ -30,7 +30,6 @@ import main
 import rbe_insert
 import sys
 import os 
-sys.path = [p for p in sys.path if p != os.getcwd()] # ensures that the local `types.py` file won't be picked up first
 import subprocess
 import re 
 import json # for parsing args from command line
@@ -69,43 +68,30 @@ def insert_rule(c_source:str, ir_tokens:list[str], rbe_file, rule_num:list) -> N
         create_new_rule(rbe_file, rule_num)
         
     # insert the rule into the rule database using rbe_insert.py  
-    #print(f"\nCalling rbe_insert.py with arguments: {c_source}, {ir_tokens}, {rbe_file}, {rule_num}")
-    print(f"\nCalling rbe_insert.py with arguments: {c_source}, {rbe_file}, {rule_num}")
+    print(f"\nCalling rbe_insert.py with arguments: {c_source}, {ir_tokens}, {rbe_file}, {rule_num}")
+    #print(f"\nCalling rbe_insert.py with arguments: {c_source}, {rbe_file}, {rule_num}")
     print(f"Inserting rule into {rbe_file} at line {rule_num}...")
     
     create_new_rule(rbe_file, rule_num)
     
     
     rbe_insert.main_(c_source, ir_tokens, rbe_file, rule_num)
-    
-    # try: 
-    #     #subprocess.run(["python3", "rbe_insert.py", c_source, ir_tokens, rbe_file, rule_num], check=True)
-    #     subprocess.run(["python3", "rbe_insert.py", c_source, " ".join(ir_tokens), rbe_file, str(rule_num)], check=True)
-    #     print(f"Inserted rule into {rbe_file} at line {rule_num}.")
-        
-    # except subprocess.CalledProcessError as e:
-    #     print(f"\n\nFailed to insert rule into {rbe_file}:\n\n{e}")
-    #     sys.exit(1)
 
 def compile(c_source: str) -> list[str]:
+    
+    if not os.path.exists(c_source): 
+        print(f"Error: {c_source} does not exist.")
+        return []
+    
     print(f"Compiling {c_source} using main.py to generate IR tokens...")
     
-    ir_tokens, ir_types = main.Main().start(["./main.py", c_source])
-    # result = subprocess.run(
-    #     ['python3', 'main.py', c_source],  # Call main.py from the compiler to compile the C source into IR tokens 
-    #     capture_output=True,  # capture standard output and error
-    #     text=True  # return output as a string, not bytes
-    # )
+    try: 
+        ir_tokens, ir_types = main.Main().start(["./main.py", c_source])
     
-    # # check for errors during the subprocess execution
-    # if result.returncode != 0:
-    #     print(f"Error while running main.py: {result.stderr}")
-    #     print(f"Compilation of {c_source} failed. Exiting...")
-    #     return []
-    
-    # # prints it out in one line 
-    # ir_tokens = result.stdout.splitlines()  # adjust this based on the actual format
-    
+    except: 
+        print(f"Error compiling {c_source}.")
+        return [] 
+
     print(f"Compiled {c_source} into IR tokens.\n")
     print(f"Compilation successful.\nIR tokens:\n{ir_tokens}")
     return ir_tokens
@@ -157,18 +143,18 @@ def main_(c_source:str, args:dict, rbe_file:str, rule_num:int):
     
     insert_rule(c_source, ir_tokens, rbe_file, rule_num)
     
-    print("Process completed.")
+    print("Process completed.")     
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
-        print("Usage: python3 prepare_rbe_insert.py <c_source_file> <args> <rule_database_file> <rule_num>")
+        print("Usage: python3 preprocess_insert.py <c_source_file> <args> <rule_database_file> <rule_num>")
         sys.exit(1)
         
     c_source = sys.argv[1] # c source file 
     
     try: 
-        args = json.loads(sys.argv[2]) # arguments to replace in the IR tokens (args = {'#1': '$1'})
+        args = json.loads(sys.argv[2]) # arguments to replace in the IR tokens (args = '{"#1": "$1"}')
         if not isinstance(args, dict): 
             raise ValueError("Parsed args is not a dictionary.")
     
