@@ -32,6 +32,15 @@ def compile_c_source(c_source_file, output_file="a.out"):
     except: 
         print(f"Error compiling {c_source_file}.")
         sys.exit(1)
+        
+# compiles the c source file using nvcc and outputs it to b.out 
+def nvcc_compile_c_source(c_source_file, output_file="b.out"):
+    try: 
+        subprocess.run(["nvcc", c_source_file, "-o", output_file], check=True) 
+        print(f"Compiled {c_source_file} to {output_file}.")
+    except: 
+        print(f"Error compiling {c_source_file}.")
+        sys.exit(1)
 
 # use this function if your computer don't uses a hybrid CPU architecture 
 # runs the compiled program with 'perf stat' and collects metrics. 
