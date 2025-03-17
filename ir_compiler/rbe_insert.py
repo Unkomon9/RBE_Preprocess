@@ -75,6 +75,7 @@ def nvcc_compile_c_source(c_source_file, output_file="b.out"):
 #         sys.exit(1)   
 
 # use this function if your computer uses a hybrid CPU architecture (e.g. Intel Atom and Intel Core)
+# need to run perf stat on the b.out file to get CUDA metrics 
 def run_perf_stat(output_file): 
     try: 
         result = subprocess.run( 
