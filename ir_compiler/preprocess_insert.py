@@ -103,7 +103,7 @@ def preprocess(ir_tokens, args):
     
     
     # # prints it out in one line 
-    # ir_tokens = result.stdout.splitlines()  # adjust this based on the actual format
+    # ir_tokens = result.stdout.splitlines() 
     
     print(f"Compiled {c_source} into IR tokens.\n")
     print(f"Compilation successful.\nIR tokens:\n{ir_tokens}")
@@ -136,7 +136,7 @@ def main_(c_source:str, args:dict, rbe_file:str, rule_num:int):
     
     ir_tokens = compile(c_source)
     
-    # TODO: FIX THIS PLEASE!!!
+    # TODO: FIX THIS PLEASE!!! (fix later bruh)
     ir_tokens = [x.token for x in ir_tokens[0].tokens]
     
     ir_tokens = preprocess(ir_tokens, args)
