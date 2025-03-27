@@ -22,7 +22,7 @@ import subprocess
 import os 
 import sys 
 import re   
-import main
+# import main
 
 # compiles the c source file using gcc and outputs it to a.out
 def compile_c_source(c_source_file, output_file="a.out"): 

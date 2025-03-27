@@ -28,7 +28,6 @@
 # 4. preprocess (don't know what this does yet)
 # 5. main_ (c_source_file, ir_tokens, rule_database_file, insert_line)
 
-
 import rbe_insert
 import compiler 
 import sys
@@ -105,8 +104,8 @@ def main_(cuda_source:str, rbe_file:str, rule_num:int) -> None:
 
 
 if __name__ == "__main__": 
-    if len(sys.argv) != 2: 
-        print("Usage: python3 cuda_preprocess.py <cuda_source_file>")
+    if len(sys.argv) != 4: 
+        print("Usage: python3 cuda_preprocess.py <cuda_source_file> <rule_database_file> <rule_num>")
         sys.exit(1) 
         
     cuda_source = sys.argv[1] # cuda source file 
