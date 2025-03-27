@@ -34,7 +34,7 @@ def compile_c_source(c_source_file, output_file="a.out"):
         sys.exit(1)
         
 # compiles the c source file using nvcc and outputs it to b.out 
-def nvcc_compile_c_source(c_source_file, output_file="b.out"):
+def nvcc_compile_c_source(c_source_file, output_file="cuda.out"):
     try: 
         subprocess.run(["nvcc", c_source_file, "-o", output_file], check=True) 
         print(f"Compiled {c_source_file} to {output_file}.")
@@ -176,7 +176,7 @@ def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_lin
                 f"{metrics['gpu_total_cycles']:.10f}:"
                 f"{metrics['gpu_total_time']:.10f}"
             )
-            formatted_rule = f'"{ir_tokens}"~{metric_string}'
+            formatted_rule = f'".*$0 {ir_tokens}"~{metric_string}'
         else: 
             formatted_rule = f'"{ir_tokens}"'
         
@@ -196,14 +196,13 @@ def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_lin
         print(f"Failed to update rule into database: {e}")
         sys.exit(1)
 
-        
 
 
 # the main function haha get it "main" function (not sorry) to handle the process 
 def main_(c_source_file, ir_tokens, rule_database_file, insert_line): 
     
     # compile the c source file 
-    compile_c_source(c_source_file)
+    #compile_c_source(c_source_file)
     nvcc_compile_c_source(c_source_file)
     
     # run the compiled file with perf stat to gather metrics 

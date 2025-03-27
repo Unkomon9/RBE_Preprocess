@@ -1,4 +1,4 @@
-// #include <cuda_runtime.h>
+#include <cuda_runtime.h>
 
 __global__ void multiply(int* a, int* b, int* c) {
     int i = threadIdx.x + blockIdx.x * blockDim.x;

@@ -77,7 +77,7 @@ def compile(cuda_source: str) -> list[str]:
     
     print(f"Compiled {cuda_source} into cuda tokens strings.\n")
     print(f"Compile successful.\nCUDA tokens: {cuda_tokens}")
-    return cuda_tokens 
+    return " ".join(map(str,cuda_tokens)) # formatted string of cuda tokens 
 
 
 def insert_rule(cuda_source, cuda_tokens:list[str], cuda_rbe_file, rule_num:int) -> None: 
@@ -85,7 +85,7 @@ def insert_rule(cuda_source, cuda_tokens:list[str], cuda_rbe_file, rule_num:int)
     if not os.path.exists(cuda_rbe_file): 
         print(f"Rule database file '{cuda_rbe_file}' does not exist. Please check your current directory.")
         create_new_rule(cuda_rbe_file, rule_num)
-        
+    
     # insert the rule into the rule database using rbe_insert.py 
     print(f"\nCalling rbe_insert.py with arguments: {cuda_source}, {cuda_tokens}, {cuda_rbe_file}, {rule_num}")
     print(f"Inserting rule into {cuda_rbe_file} at line {rule_num}...")
@@ -94,10 +94,10 @@ def insert_rule(cuda_source, cuda_tokens:list[str], cuda_rbe_file, rule_num:int)
     
     rbe_insert.main_(cuda_source, cuda_tokens, cuda_rbe_file, rule_num) 
 
+
 def main_(cuda_source:str, rbe_file:str, rule_num:int) -> None:
     print(f"Preprocessing {cuda_source}...")
     cuda_tokens = compile(cuda_source)  
-    print(cuda_tokens)
     insert_rule(cuda_source, cuda_tokens, rbe_file, rule_num)
     print("\nPreprocess completed.")
 
