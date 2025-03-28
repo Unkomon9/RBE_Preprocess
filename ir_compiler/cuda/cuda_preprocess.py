@@ -69,7 +69,8 @@ def compile(cuda_source: str) -> list[str]:
     try: 
         # compile the cuda source file using compiler.py 
         cuda_tokens = compiler.Compiler().compile(cuda_source)
-        print(f"\nCompilation successful. Generated cuda tokens: {cuda_tokens}")
+        print(f"\nCompilation successful.")
+        print(f"Generated cuda tokens: {cuda_tokens}")
     
     except: 
         print(f"Error compiling {cuda_source}.")
