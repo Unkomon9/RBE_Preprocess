@@ -1,23 +1,3 @@
-# You are given:
-#     filename of C source code
-#     filename IR of that C file (given from compiler)
-#     filename of rule database
-#     line number to insert on
-
-# Compile the C source with gcc
-# Run the Compiled program with perf stat to get metrics
-# Insert the rules like this
-
-# Existing Database file
-# ```
-# "else if":1:2 eq "else { if }":3:4
-# ```
-
-# After insert of "elif" on line 1 of that file with metrics 20 and 13
-# ```
-# "elif":20:13 eq "else if":1:2 eq "else { if }":3:4
-# ```
-
 import subprocess
 import os 
 import sys 
@@ -34,13 +14,13 @@ def compile_c_source(c_source_file, output_file="a.out"):
         sys.exit(1)
         
 # compiles the c source file using nvcc and outputs it to b.out 
-def nvcc_compile_c_source(c_source_file, output_file="b.out"):
-    try: 
-        subprocess.run(["nvcc", c_source_file, "-o", output_file], check=True) 
-        print(f"Compiled {c_source_file} to {output_file}.")
-    except: 
-        print(f"Error compiling {c_source_file}.")
-        sys.exit(1)
+# def nvcc_compile_c_source(c_source_file, output_file="b.out"):
+#     try: 
+#         subprocess.run(["nvcc", c_source_file, "-o", output_file], check=True) 
+#         print(f"Compiled {c_source_file} to {output_file}.")
+#     except: 
+#         print(f"Error compiling {c_source_file}.")
+#         sys.exit(1)
 
 # use this function if your computer don't uses a hybrid CPU architecture 
 # runs the compiled program with 'perf stat' and collects metrics. 
@@ -204,17 +184,17 @@ def main_(c_source_file, ir_tokens, rule_database_file, insert_line):
     
     # compile the c source file 
     compile_c_source(c_source_file)
-    nvcc_compile_c_source(c_source_file)
+    #nvcc_compile_c_source(c_source_file)
     
     # run the compiled file with perf stat to gather metrics 
     cpu_total_cycles, cpu_total_time = run_perf_stat("a.out")
-    gpu_total_cycles, gpu_total_time = run_perf_stat("b.out")
+    #gpu_total_cycles, gpu_total_time = run_perf_stat("b.out")
     
     metrics = {
         "cpu_total_cycles": cpu_total_cycles,
         "cpu_total_time": cpu_total_time,
-        "gpu_total_cycles": gpu_total_cycles,
-        "gpu_total_time": gpu_total_time
+        #"gpu_total_cycles": gpu_total_cycles,
+        #"gpu_total_time": gpu_total_time
     }
     
     # insert the rule with the metrics into the rule database

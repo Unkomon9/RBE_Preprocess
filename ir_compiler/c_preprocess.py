@@ -1,31 +1,3 @@
-# Functions:
-#     create_new_rule(rule_num:int) -> None
-#         - while number of lines of file < rule_num, add new empty line
-
-#     insert_rule(c_source:str, ir_tokens:list[str], rbe_file, rule_num:int) -> None
-#         - if rule_num doesn't exist, create_new_rule(rule_num)
-#         - use rbe_insert.py to do this stuff
-
-#     compile(c_source:str) -> ir_tokens
-#         - run compiler on c_source
-
-#     preprocess(ir_tokens:list[str], func_details) -> ir_tokens
-#         - do some stuff that needs to be further looked at
-
-#     main(c_source:str, func_details, rbe_file, rule_num)
-#         - ir_tokens = compile(c_source)
-#         - ir_tokens = preprocess(ir_tokens, func_details)
-#         - insert_rule(c_source, ir_tokens, rbe_file, rule_num)
-
-
-# So main will be what you call the program with. You will give it a C source file, the function's details (which we don't know yet), the rbe filename (the rule database), and the rule_num (which is just the problem number on the website [and the line number to insert on]).
-
-# Main will call the compile function which will just import the compiler and run it    on the C source file (outputting the IR tokens).
-
-# It will then call preprocess on the IR tokens to do something that we don't know yet. (it will replace the IR variables with something else)
-
-# It will then call insert_rule which will use your rbe_insert.py script. You should have all of the arguments at that point.
-
 import main
 import rbe_insert
 import sys
@@ -69,7 +41,6 @@ def insert_rule(c_source:str, ir_tokens:list[str], rbe_file, rule_num:list) -> N
         
     # insert the rule into the rule database using rbe_insert.py  
     print(f"\nCalling rbe_insert.py with arguments: {c_source}, {ir_tokens}, {rbe_file}, {rule_num}")
-    #print(f"\nCalling rbe_insert.py with arguments: {c_source}, {rbe_file}, {rule_num}")
     print(f"Inserting rule into {rbe_file} at line {rule_num}...")
     
     create_new_rule(rbe_file, rule_num)
@@ -148,7 +119,7 @@ def main_(c_source:str, args:dict, rbe_file:str, rule_num:int):
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
-        print("Usage: python3 preprocess_insert.py <c_source_file> <args> <rule_database_file> <rule_num>")
+        print("Usage: python3 c_preprocess.py <c_source_file> <args> <rule_database_file> <rule_num>")
         sys.exit(1)
         
     c_source = sys.argv[1] # c source file 
