@@ -75,42 +75,14 @@ def run_perf_stat(output_file):
 def read_ir_file(ir_file): 
     try: 
         with open(ir_file, "r") as f: 
-            ir_tokens = f.read().strip()
-        return ir_tokens 
+            cuda_tokens  = f.read().strip()
+        return cuda_tokens  
     except Exception as e: 
         print(f"Error reading IR file:\n\n{e}")
         sys.exit(1)
 
-# insert rules the IR rule with metrics into the rule database file at the specified line number. 
-# def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_line):
-#     try: 
-#         with open(rule_database_file, "r") as f: 
-#             lines = f.readlines()
-            
-#         # formate the new rule with metrics
-#         if len(metrics) > 0:
-#             metric_string = ":".join([f"{x:.10f}" for x in metrics])
-#             formatted_rule = f'"{ir_tokens}"~{metric_string}'
-#         else: 
-#             formatted_rule = f'"{ir_tokens}"'
         
-#         # insert the new rule at the specified line number 
-#         if insert_line - 1 < len(lines): 
-#             lines.insert(insert_line - 1, formatted_rule + " = ") 
-#         else: 
-#             lines.append(formatted_rule + ";\n")
-            
-#         # write back to the new database file 
-#         with open(rule_database_file, "w") as f: 
-#             f.writelines(lines)
-            
-#         print(f"Inserted rule from IR file with metrics {metrics} at line {insert_line}.")
-        
-#     except Exception as e: 
-#         print(f"Failed to update rule into database: {e}")
-#         sys.exit(1)
-        
-def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_line):
+def insert_rule_into_database(rule_database_file, cuda_tokens , metrics, insert_line):
     try:
         with open(rule_database_file, "r") as f:
             lines = f.readlines()
@@ -118,9 +90,9 @@ def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_lin
         # Format the new rule with GPU metrics
         if metrics:
             metric_string = f"1:{metrics['gpu_total_cycles']:.10f}:{metrics['gpu_total_time']:.10f}"
-            formatted_rule = f'".*$0 {ir_tokens}"~{metric_string}'
+            formatted_rule = f'".*$0 {cuda_tokens }"~{metric_string}'
         else:
-            formatted_rule = f'"{ir_tokens}"'
+            formatted_rule = f'"{cuda_tokens }"'
 
         # Insert the new rule at the specified line number
         if insert_line - 1 < len(lines):
@@ -141,7 +113,7 @@ def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_lin
 
 
 # the main function haha get it "main" function (not sorry) to handle the process 
-def main_(cuda_source_file, ir_tokens, rule_database_file, insert_line):
+def main_(cuda_source_file, cuda_tokens , rule_database_file, insert_line):
     # Compile the CUDA source file
     compile_cuda_source(cuda_source_file)
 
@@ -154,7 +126,7 @@ def main_(cuda_source_file, ir_tokens, rule_database_file, insert_line):
     }
 
     # Insert the rule with GPU metrics into the rule database
-    insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_line)
+    insert_rule_into_database(rule_database_file, cuda_tokens , metrics, insert_line)
     print("Process completed")
 
 
