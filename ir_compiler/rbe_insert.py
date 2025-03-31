@@ -153,8 +153,6 @@ def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_lin
             metric_string = (
                 f"{metrics['cpu_total_cycles']:.10f}:"
                 f"{metrics['cpu_total_time']:.10f}:"
-                f"{metrics['gpu_total_cycles']:.10f}:"
-                f"{metrics['gpu_total_time']:.10f}"
             )
             formatted_rule = f'"{ir_tokens}"~{metric_string}'
         else: 
@@ -176,6 +174,34 @@ def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_lin
         print(f"Failed to update rule into database: {e}")
         sys.exit(1)
 
+# def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_line):
+#     try:
+#         with open(rule_database_file, "r") as f:
+#             lines = f.readlines()
+
+#         # Format the new rule with GPU metrics
+#         if metrics:
+#             metric_string = f"0:{metrics['cpu_total_cycle']:.10f}:{metrics['cpu_total_time']:.10f}"
+#             formatted_rule = f'".*$0 {ir_tokens}"~{metric_string}'
+#         else:
+#             formatted_rule = f'"{ir_tokens}"'
+
+#         # Insert the new rule at the specified line number
+#         if insert_line - 1 < len(lines):
+#             lines.insert(insert_line - 1, formatted_rule + " = \n")
+#         else:
+#             lines.append(formatted_rule + ";\n")
+
+#         # Write back to the database file
+#         with open(rule_database_file, "w") as f:
+#             f.writelines(lines)
+
+#         print(f"Inserted rule from IR file with metrics {metric_string} at line {insert_line}.")
+
+#     except Exception as e:
+#         print(f"Failed to update rule into database: {e}")
+#         sys.exit(1)
+
         
 
 
@@ -184,17 +210,13 @@ def main_(c_source_file, ir_tokens, rule_database_file, insert_line):
     
     # compile the c source file 
     compile_c_source(c_source_file)
-    #nvcc_compile_c_source(c_source_file)
     
     # run the compiled file with perf stat to gather metrics 
     cpu_total_cycles, cpu_total_time = run_perf_stat("a.out")
-    #gpu_total_cycles, gpu_total_time = run_perf_stat("b.out")
     
     metrics = {
         "cpu_total_cycles": cpu_total_cycles,
         "cpu_total_time": cpu_total_time,
-        #"gpu_total_cycles": gpu_total_cycles,
-        #"gpu_total_time": gpu_total_time
     }
     
     # insert the rule with the metrics into the rule database

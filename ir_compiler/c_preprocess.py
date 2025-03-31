@@ -68,7 +68,6 @@ def compile(c_source: str) -> list[str]:
     return ir_tokens
 
 
-#args = {'#1': '$1'}
 def preprocess(ir_tokens, args): 
     special_chars = set(['.', '+', '*', '|', '{', '$', '\\', '"']) # set of special characters that need to be escaped
     
