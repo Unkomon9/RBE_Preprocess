@@ -11,48 +11,7 @@ def compile_c_source(c_source_file, output_file="a.out"):
         print(f"Compiled {c_source_file} to {output_file}.")
     except: 
         print(f"Error compiling {c_source_file}.")
-        sys.exit(1)
-        
-# compiles the c source file using nvcc and outputs it to b.out 
-# def nvcc_compile_c_source(c_source_file, output_file="b.out"):
-#     try: 
-#         subprocess.run(["nvcc", c_source_file, "-o", output_file], check=True) 
-#         print(f"Compiled {c_source_file} to {output_file}.")
-#     except: 
-#         print(f"Error compiling {c_source_file}.")
-#         sys.exit(1)
-
-# use this function if your computer don't uses a hybrid CPU architecture 
-# runs the compiled program with 'perf stat' and collects metrics. 
-# the metrics that's being collected is the 'Total Time' and 'Cycles'
-# return the metrics as a tuple as integers. 
-# def run_perf_stat(output_file): 
-#     try: 
-#         result = subprocess.run( 
-#             ["perf", "stat", "-r", "5", f"./{output_file}"],
-#             stderr=subprocess.PIPE,
-#             stdout=subprocess.DEVNULL,  # ignore the output 
-#             text=True
-#         )
-#         perf_output = result.stderr
-#         print("Perf output captured")
-        
-#         # extract the metrics from the perf output, Total Time and and Cycles using regex 
-#         cycles_match = re.search(r'([\d,]+)\s+cycles', perf_output)
-#         time_match = re.search(r'([\d.]+)\s+seconds time elapsed', perf_output)
-        
-#         if cycles_match and time_match: 
-#             cycles = int(cycles_match.group(1).replace(",", "")) # remove commas and convert to int 
-#             total_time = float(time_match.group(1)) # covert to float 
-#             return cycles, total_time
-#         else: 
-#             print("Failed to extract metrics from perf output Raw output:")
-#             print(perf_output)
-#             sys.exit(1)
-        
-#     except Exception as e: 
-#         print(f"Failed to run with perf: {e}")
-#         sys.exit(1)   
+        sys.exit(1) 
 
 # use this function if your computer uses a hybrid CPU architecture (e.g. Intel Atom and Intel Core)
 def run_perf_stat(output_file): 
@@ -148,23 +107,20 @@ def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_lin
         with open(rule_database_file, "r") as f: 
             lines = f.readlines()
             
-        # Format the new rule with metrics
+        # format the new rule with GPU metrics
         if metrics:
-            metric_string = (
-                f"{metrics['cpu_total_cycles']:.10f}:"
-                f"{metrics['cpu_total_time']:.10f}:"
-            )
-            formatted_rule = f'"{ir_tokens}"~{metric_string}'
-        else: 
-            formatted_rule = f'"{ir_tokens}"'
+            metric_string = f"0:{metrics['cpu_total_cycles']:.10f}:{metrics['cpu_total_time']:.10f}"
+            formatted_rule = f'".*$0 {ir_tokens }"~{metric_string}'
+        else:
+            formatted_rule = f'"{ir_tokens }"'
         
-        # Insert the new rule at the specified line number 
+        # insert the new rule at the specified line number 
         if insert_line - 1 < len(lines): 
             lines.insert(insert_line - 1, formatted_rule + " = \n") 
         else: 
             lines.append(formatted_rule + ";\n")
             
-        # Write back to the database file 
+        # write back to the database file 
         with open(rule_database_file, "w") as f: 
             f.writelines(lines)
             
@@ -173,36 +129,6 @@ def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_lin
     except Exception as e: 
         print(f"Failed to update rule into database: {e}")
         sys.exit(1)
-
-# def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_line):
-#     try:
-#         with open(rule_database_file, "r") as f:
-#             lines = f.readlines()
-
-#         # Format the new rule with GPU metrics
-#         if metrics:
-#             metric_string = f"0:{metrics['cpu_total_cycle']:.10f}:{metrics['cpu_total_time']:.10f}"
-#             formatted_rule = f'".*$0 {ir_tokens}"~{metric_string}'
-#         else:
-#             formatted_rule = f'"{ir_tokens}"'
-
-#         # Insert the new rule at the specified line number
-#         if insert_line - 1 < len(lines):
-#             lines.insert(insert_line - 1, formatted_rule + " = \n")
-#         else:
-#             lines.append(formatted_rule + ";\n")
-
-#         # Write back to the database file
-#         with open(rule_database_file, "w") as f:
-#             f.writelines(lines)
-
-#         print(f"Inserted rule from IR file with metrics {metric_string} at line {insert_line}.")
-
-#     except Exception as e:
-#         print(f"Failed to update rule into database: {e}")
-#         sys.exit(1)
-
-        
 
 
 # the main function haha get it "main" function (not sorry) to handle the process 

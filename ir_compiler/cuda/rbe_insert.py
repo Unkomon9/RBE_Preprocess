@@ -57,7 +57,7 @@ def run_perf_stat(output_file):
         print("Perf output captured")
         print(f"perf_output: {perf_output}")
 
-        # Extract GPU cycles and time elapsed
+        # extract GPU cycles and time elapsed
         gpu_cycles_match = re.search(r'([\d,]+)\s+cpu_core/cycles/', perf_output)
         time_match = re.search(r'([\d.]+)\s+seconds time elapsed', perf_output)
 
@@ -87,20 +87,20 @@ def insert_rule_into_database(rule_database_file, cuda_tokens , metrics, insert_
         with open(rule_database_file, "r") as f:
             lines = f.readlines()
 
-        # Format the new rule with GPU metrics
+        # format the new rule with GPU metrics
         if metrics:
             metric_string = f"1:{metrics['gpu_total_cycles']:.10f}:{metrics['gpu_total_time']:.10f}"
             formatted_rule = f'".*$0 {cuda_tokens }"~{metric_string}'
         else:
             formatted_rule = f'"{cuda_tokens }"'
 
-        # Insert the new rule at the specified line number
+        # insert the new rule at the specified line number
         if insert_line - 1 < len(lines):
             lines.insert(insert_line - 1, formatted_rule + " = \n")
         else:
             lines.append(formatted_rule + ";\n")
 
-        # Write back to the database file
+        # write back to the database file
         with open(rule_database_file, "w") as f:
             f.writelines(lines)
 
@@ -114,10 +114,10 @@ def insert_rule_into_database(rule_database_file, cuda_tokens , metrics, insert_
 
 # the main function haha get it "main" function (not sorry) to handle the process 
 def main_(cuda_source_file, cuda_tokens , rule_database_file, insert_line):
-    # Compile the CUDA source file
+    # compile the CUDA source file
     compile_cuda_source(cuda_source_file)
 
-    # Run the compiled CUDA file with perf stat to gather GPU metrics
+    # run the compiled CUDA file with perf stat to gather GPU metrics
     gpu_total_cycles, gpu_total_time = run_perf_stat("cuda.out")
 
     metrics = {
@@ -125,7 +125,7 @@ def main_(cuda_source_file, cuda_tokens , rule_database_file, insert_line):
         "gpu_total_time": gpu_total_time
     }
 
-    # Insert the rule with GPU metrics into the rule database
+    # insert the rule with GPU metrics into the rule database
     insert_rule_into_database(rule_database_file, cuda_tokens , metrics, insert_line)
     print("Process completed")
 
