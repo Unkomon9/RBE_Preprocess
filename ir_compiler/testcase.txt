@@ -1,0 +1,44 @@
+Parsing CLI Args...
+ARGS:
+Namespace(input_files=['testing/operator_converter/11.c'], output_file='a.out', include=[])
+Compiling testing/operator_converter/11.c
+++++++++++++++++++++++++++++++++++++++++++++++++++
+Performing Lexing
+Reading file: testing/operator_converter/11.c
+Tokenizing...
+Combining Prefix and Postfix...
+Done lexing.
+['\n', '#', 'include', ' ', '<', 'stdio', '.', 'h', '>', '\n', '\n', 'int', ' ', 'main', ' ', '(', 'int', ' ', 'argc', ',', ' ', 'char', '*', '*', ' ', 'argv', ')', '{', '\n', ' ', ' ', ' ', ' ', 'printf', '(', '"', 'Hello', ',', ' ', 'World', '!', '\\', 'n', '"', ')', ';', '\n', ' ', ' ', ' ', ' ', 'return', ' ', '0', ';', '\n', '}', '\n', '\n']
+++++++++++++++++++++++++++++++++++++++++++++++++++
+Performing Normalization
+Removing Comments from tokens...
+Combining Strings into single tokens...
+Combining Floats into single tokens...
+Converting special integer literals
+Managing the preprocessor directive syntax...
+Removing all whitespace...
+Removing auto and register keywords...
+Finished Normalization!
+['#', 'include', '#DEFINE_SPACE', '<', 'stdio', '.', 'h', '>', '#END_DIRECTIVE', 'int', 'main', '(', 'int', 'argc', ',', 'char', '*', '*', 'argv', ')', '{', 'printf', '(', '"Hello, World!\\n"', ')', ';', 'return', '0', ';', '}']
+++++++++++++++++++++++++++++++++++++++++++++++++++
+Performing Preprocessing
+Handling Directives...
+Found directive:
+['#', 'include', '#DEFINE_SPACE', '<', 'stdio', '.', 'h', '>', '#END_DIRECTIVE']
+Handling include...
+['#', 'include', '#DEFINE_SPACE', '<', 'stdio', '.', 'h', '>', '#END_DIRECTIVE']
+filepath = 'stdio.h'
+Library include...
+Finshed Preprocessing!
+['int', 'main', '(', 'int', 'argc', ',', 'char', '*', '*', 'argv', ')', '{', 'printf', '(', '"Hello, World!\\n"', ')', ';', 'return', '0', ';', '}']
+++++++++++++++++++++++++++++++++++++++++++++++++++
+Performing Simplification
+[#TYPE(['int']), 'main', '(', #TYPE(['int']), 'argc', ',', #TYPE(['char', '*', '*']), 'argv', ')', '{', 'printf', '(', '"Hello, World!\\n"', ')', ';', 'return', '0', ';', '}']
+--------
+18 18
+['}']
+printf
+ENCOUNTERED FATAL ERROR!
+Checking for errors...
+ERROR at testing/operator_converter/11.c:4
+	Undefined identifier printf: (printf)

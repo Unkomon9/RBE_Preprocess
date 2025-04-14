@@ -8,9 +8,9 @@ import main
 def compile_c_source(c_source_file, output_file="a.out"): 
     try: 
         subprocess.run(["gcc", c_source_file, "-o", output_file], check=True)
-        print(f"Compiled {c_source_file} to {output_file}.")
+        #print(f"Compiled {c_source_file} to {output_file}.")
     except: 
-        print(f"Error compiling {c_source_file}.")
+        #print(f"Error compiling {c_source_file}.")
         sys.exit(1) 
 
 # use this function if your computer uses a hybrid CPU architecture (e.g. Intel Atom and Intel Core)
@@ -23,8 +23,8 @@ def run_perf_stat(output_file):
             text=True
         )
         perf_output = result.stderr
-        print("Perf output captured")
-        print (f"perf_output: {perf_output}")
+        #print("Perf output captured")
+        #print (f"perf_output: {perf_output}")
 
         if output_file == "a.out": # CPU metrics 
             # extract cycles for both CPU types
@@ -54,12 +54,12 @@ def run_perf_stat(output_file):
         #     total_time = float(time_match.group(1))  # convert to float
         #     return total_cycles, total_time
         else: 
-            print("Failed to extract Total Time from perf output. Raw output:")
-            print(perf_output)
+            #print("Failed to extract Total Time from perf output. Raw output:")
+            #print(perf_output)
             sys.exit(1)
     
     except Exception as e:
-        print(f"Error running perf stat: {e}")
+        #print(f"Error running perf stat: {e}")
         sys.exit(1)
 
     
@@ -70,7 +70,7 @@ def read_ir_file(ir_file):
             ir_tokens = f.read().strip()
         return ir_tokens 
     except Exception as e: 
-        print(f"Error reading IR file:\n\n{e}")
+        #print(f"Error reading IR file:\n\n{e}")
         sys.exit(1)
 
 # insert rules the IR rule with metrics into the rule database file at the specified line number. 
@@ -124,10 +124,13 @@ def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_lin
         with open(rule_database_file, "w") as f: 
             f.writelines(lines)
             
-        print(f"Inserted rule from IR file with metrics {metric_string} at line {insert_line}.")
+        #print(f"Inserted rule from IR file with metrics {metric_string} at line {insert_line}.")
+        sys.stdout = sys.__stdout__
+        print(metrics['cpu_total_cycles']/10000)
+        sys.stdout = open(os.devnull, "w")
         
     except Exception as e: 
-        print(f"Failed to update rule into database: {e}")
+        #print(f"Failed to update rule into database: {e}")
         sys.exit(1)
 
 
@@ -147,13 +150,13 @@ def main_(c_source_file, ir_tokens, rule_database_file, insert_line):
     
     # insert the rule with the metrics into the rule database
     insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_line)
-    print("Process completed")
+    #print("Process completed")
 
 
 
 if __name__ == "__main__": 
     if len(sys.argv) != 5: 
-        print("Usage: python3 rbe_insert.py <c_source_file> <ir_file> <rule_database_file> <insert_line>")
+        #print("Usage: python3 rbe_insert.py <c_source_file> <ir_file> <rule_database_file> <insert_line>")
         sys.exit(1)
         
     c_source_file = sys.argv[1] # c source file 

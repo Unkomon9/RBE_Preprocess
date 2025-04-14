@@ -1,201 +1,257 @@
 
 from debug import *
-from token import *
+from tokens import *
+
+def normalize(toks:Tokens):
+    # remove comments and multi-line comments not in strings
+    dbg("Removing Comments from tokens...")
+    toks = remove_comments(toks)
+
+    # combine strings into single tokens
+    dbg("Combining Strings into single tokens...")
+    toks = combine_strings(toks)
+
+    # combine floats into single tokens
+    dbg("Combining Floats into single tokens...")
+    toks = combine_floats(toks)
+
+    dbg("Converting special integer literals")
+    toks = convert_special_integers(toks)
+    
+    # manage compiler directive syntax
+    dbg("Managing the preprocessor directive syntax...")
+    toks = manage_directive_syntax(toks)
+
+    # remove whitespace
+    dbg("Removing all whitespace...")
+    toks = remove_whitespace(toks)
+
+    # remove auto and register keywords
+    dbg("Removing auto and register keywords...")
+    toks = remove_auto_and_register(toks)
+
+    dbg("Finished Normalization!")
+    dbg(toks)
+
+    return toks
 
 
-class Normalizer:
-    def __init__(self, tokens:list[Token]):
-        self.tokens = tokens
+def remove_comments(toks:Tokens):
 
-        # remove comments and multi-line comments that are not in string
-        self.tokens = self.remove_comments(self.tokens)
-        
-        # check compiler directive syntax
-        self.tokens = self.check_directive_syntax(self.tokens)
+    comment = False
+    multi_line = False
+    quotes = False
+    char_quote = False
 
-        # combine strings into single tokens and remove whitespace
-        self.tokens = self.combine_strings(self.tokens)
+    backslashes = 0
 
-        # combine floats into single tokens
-        self.tokens = self.combine_floats(self.tokens)
+    i = 0
+    n = len(toks)
+    while i < n:
+            # handle if this is the end of a multi-line comment
+        if comment and multi_line:
+            if toks[i] == "*" and i + 1 < n and toks[i+1] == "/":
+                comment = False
+                multi_line = False
+                del toks[i]
+                del toks[i]
+                n -= 2
+                continue
 
-
-        
-    def remove_comments(self, tokens:list[Token]) -> list[Token]:
-        dbg("Removing Comments From The Tokens...")
-
-        result = []
-
-        comment = False
-        multi_line = False
-        quotes = False
-        char_quote = False
-
-        i = 0
-        n = len(tokens)
-        while i < n:
-
-            if tokens[i] == '/':
-                if comment and multi_line:
-                    if i and tokens[i-1] == "*":
-                        comment = False
+        if toks[i] == "/":
+            # handle if this is the start of either type of comment
+            if i + 1 < n:
+                if not comment and not quotes:
+                    if toks[i+1] == "/":
+                        comment = True
                         multi_line = False
-                        i += 1
-                        continue
+                    elif toks[i+1] == '*':
+                        comment = True
+                        multi_line = True
 
-                if i + 1 < n:
-                    if not comment and not quotes:
-                        if tokens[i+1] == '/':
-                            comment = True
-                            multi_line = False
-                        elif tokens[i+1] == '*':
-                            comment = True
-                            multi_line = True
-
-            elif tokens[i] == '"':
+        elif toks[i] == '"':
+            if not comment:
                 if not quotes and not char_quote:
                     quotes = True
                 elif quotes and not char_quote:
-                    backslashes = self.get_backslashes_before(tokens, i)
                     if backslashes % 2 == 0:
                         quotes = False
-            elif tokens[i] == "'":
+        elif toks[i] == "'":
+            if not comment:
                 if not quotes and not char_quote:
                     char_quote = True
                 elif not quotes and char_quote:
-                    backslashes = self.get_backslashes_before(tokens, i)
                     if backslashes % 2 == 0:
                         char_quote = False
+        elif toks[i] == '\n':
+            # end a single-line comment if needed
+            if comment and not multi_line and backslashes % 2 == 0:
+                comment = False
+            elif (quotes or char_quote) and i:
+                # throw error if reaching end of string
+                if backslashes % 2 == 0:
+                    if not comment:
+                        toks[i].fatal_error("Unmatched '\"'.")
+                else:
+                    # act as if newline wasn't there if escaped
+                    del toks[i]
+                    i -= 1
+                    del toks[i]
+                    n -= 2
+                    continue
 
-            # keeping track of newlines
-            elif tokens[i] == '\n':
-                if comment and not multi_line:
-                    comment = False
-                if quotes and i:
-                    if tokens[i-1] == "\\":
-                        fatal_error(tokens[i-1], "Syntax error. Unmatched \"")
+        # keep count of backslashes
+        if toks[i] == "\\":
+            backslashes += 1
+        else:
+            backslashes = 0
 
-            if not comment:
-                result.append(tokens[i])
+        # remove this token if in a comment
+        if comment:
+            del toks[i]
+            n -= 1
+            continue
 
-            i += 1
-
-        dbg("Finished Removing Comments From The Tokens!")
-        return result
-
-
-    def get_backslashes_before(self, tokens, index):
-        result = 0
-
-        for i in range(index-1, -1, -1):
-            if tokens[i] != "\\":
-                return result
-            result += 1
-
-        return result
-
-
-    def check_directive_syntax(self, tokens:list[Token]) -> list[Token]:
-        i = 0
-        n = len(tokens)
-
-        while i < n:
-            if tokens[i] == "#END_DIRECTIVE":
-                fatal_error(tokens[i], "Invalid token")
-            elif tokens[i] == "#":
-                definition = False
-                # put #END_DIRECTIVE in place of the newline
-                while i < n:
-                    if tokens[i] == "define":
-                        definition = True
-                    elif tokens[i] == " " and definition:
-                        tokens[i].token = "DEFINE_SPACE"
-                    elif tokens[i] == "\n":
-                        tokens.insert(i, Token("#END_DIRECTIVE", tokens[i].line_number, tokens[i].filename))
-                        break;
-                    i += 1
-
-            i += 1
-
-        return tokens
-
+        i += 1
     
-    def combine_strings(self, tokens:list[Token]) -> list[Token]:
-        dbg("Combining string and char literals to single tokens...")
+    return toks
 
-        i = 0
-        n = len(tokens)
 
-        result = []
+def manage_directive_syntax(toks:Tokens):
+    # throw errors for reserved tokens
+    toks.error_all("#END_DIRECTIVE", "Token is not valid", fatal=True)
+    toks.error_all("#DEFINE_SPACE", "Token is not valid", fatal=True)
 
-        quotes = False
-        char_quotes = False
 
-        while i < n:
-            if tokens[i] == "\"":
-                if not char_quotes and not quotes:
-                    quotes = 1
-                    result.append(tokens[i])
-                    i += 1
-                    continue
-                elif not char_quotes and quotes:
-                    backslashes = self.get_backslashes_before(tokens, i)
+    i = 0
+    n = len(toks)
+    while i < n:
+        if toks[i] == "#":
+            backslashes = 0
+            while i < n:
+                if toks[i] == " ":
+                    toks[i].token = "#DEFINE_SPACE"
+                elif toks[i] == "\n":
                     if backslashes % 2 == 0:
-                        quotes = False
-                        result[-1].token += tokens[i].token
-                        i += 1
+                        toks[i].token = "#END_DIRECTIVE"
+                        break
+                    else:
+                        del toks[i]
+                        i -= 1
+                        del toks[i]
+                        n -= 2
+                        backslashes = 0
                         continue
-            elif tokens[i] == "'":
-                if not char_quotes and not quotes:
-                    char_quotes = True
-                    result.append(tokens[i])
-                    i += 1
-                    continue
-                elif char_quotes and not quotes:
-                    backslashes = self.get_backslashes_before(tokens, i)
+
+                if toks[i] == "\\":
+                    backslashes += 1
+                else:
+                    backslashes = 0
+
+                i += 1
+
+        i += 1
+
+    # Consolidate adjacent define spaces
+    toks.replace_all(["#DEFINE_SPACE", "#DEFINE_SPACE"], ["#DEFINE_SPACE"])
+    
+
+    return toks
+
+
+
+def combine_strings(toks:Tokens):
+    i = 0
+    n = len(toks)
+
+    quotes = False
+    char_quote = False
+    backslashes = 0
+
+    while i < n:
+        if toks[i] == "'":
+            if i + 2 >= n:
+                toks[i].fatal_error("Expected character after '''")
+            if toks[i+1] == "\\":
+                if i + 3 >= n:
+                    toks[i].fatal_error("Expected character after '''")
+                toks.combine(i)
+                n -= 1
+
+            toks.combine(i)
+            n -= 1
+            if toks[i+1] != "'":
+                toks[i+1].fatal_error("Expected closing '''")
+
+            toks.combine(i)
+            n -= 1
+        elif toks[i] == '"':
+            while i + 1 < n:
+                if toks[i+1] == '"':
                     if backslashes % 2 == 0:
-                        char_quotes = False
-                        result[-1].token += tokens[i].token
-                        i += 1
-                        continue
-            elif tokens[i] == "\\":
-                if i + 1 < n:
-                    if tokens[i+1] == '\n':
-                        i += 2
-                        continue
+                        toks.combine(i)
+                        n -= 1
+                        break
+                elif toks[i+1] == "\\":
+                    backslashes += 1
+                else:
+                    backslashes = 0
 
-            if quotes or char_quotes:
-                result[-1].token += tokens[i].token
-            else:
-                if tokens[i].token not in {" ", "\n", "\t"}:
-                    result.append(tokens[i])
+                toks.combine(i)
+                n -= 1
+        i += 1
 
-            i += 1
-
-        dbg("Finished combining string and char literals to single tokens...")
-        return result
+    return toks
 
 
-    def combine_floats(self, tokens):
-        i = 0
-        n = len(tokens)
+def combine_floats(toks:Tokens):
+    # floats should be in the form INT.INT
+    toks.combine_all([TOKEN_INTEGER(), ".", TOKEN_INTEGER()])
+    return toks
 
-        result = []
 
-        while i < n:
-            try:
-                int(tokens[i].token)
-                int(tokens[i+2].token)
-                if tokens[i+1] == ".":
-                    tokens[i].token += tokens[i+1].token + tokens[i+2].token
-                    result.append(tokens[i])
-                    i += 3
-                    continue
-            except:
-                pass
-            result.append(tokens[i])
-            i += 1
+def remove_whitespace(toks:Tokens):
+    toks.remove_all(" ")
+    toks.remove_all("\t")
+    toks.remove_all("\n")
+    return toks
 
-        return result 
+
+def remove_auto_and_register(toks:Tokens):
+    toks.remove_all("auto")
+    toks.remove_all("register")
+    return toks
+
+
+def convert_special_integers(toks:Tokens):
+    """
+    052 = octal
+    0x2a = hex
+    0X2A = hex
+    0b10101 = binary
+    0B10101 = binary
+    """
+    i = 0
+    n = len(toks)
+    while i < n:
+        num_type = 10
+        if len(toks[i]) > 0 and toks[i][0] == "0":
+            if len(toks[i]) > 1:
+                if toks[i][2] in ["x", "X"]:
+                    num_type = 16
+                elif toks[i][2] in ["b", "B"]:
+                    num_type = 2
+                else:
+                    num_type = 8
+
+        if len(toks[i]) > 0 and toks[i][0] in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]:
+            while len(toks[i]) > 0:
+                if toks[i][-1] in ["u", "U", "L", "l"]:
+                    toks[i].token = toks[i].token[:-1]
+                else:
+                    break
         
-        
+        i += 1
+
+    return toks
+
