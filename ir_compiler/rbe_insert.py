@@ -165,3 +165,4 @@ if __name__ == "__main__":
     insert_line = int(sys.argv[4])  # line number to insert the rule 
     
     main_(c_source_file, ir_file, rule_database_file, insert_line)
+

@@ -106,12 +106,10 @@ def main_(c_source:str, args:dict, rbe_file:str, rule_num:int):
     
     ir_tokens = compile(c_source)
     
-    # TODO: fix this stuff
-    return
-    ir_tokens = preprocess(ir_tokens, args)
+    # TODO: fix this stuff 
+    #ir_tokens = preprocess(ir_tokens, args)
     
     insert_rule(c_source, ir_tokens, rbe_file, rule_num)
-    
     #print("Process completed.")     
 
 
