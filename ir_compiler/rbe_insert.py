@@ -19,12 +19,12 @@ def run_perf_stat(output_file):
         result = subprocess.run( 
             ["perf", "stat", "-r", "5", f"./{output_file}"],
             stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE,  # ignore standard output
+            stdout=subprocess.DEVNULL,  # ignore standard output
             text=True
         )
-        perf_output = result.stdout
-        print("Perf output captured")
-        print (f"perf_output: {perf_output}")
+        perf_output = result.stderr
+        #print("Perf output captured")
+        #print (f"perf_output: {perf_output}")
 
         if output_file == "a.out": # CPU metrics 
             # extract cycles for both CPU types
@@ -126,7 +126,7 @@ def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_lin
             
         #print(f"Inserted rule from IR file with metrics {metric_string} at line {insert_line}.")
         sys.stdout = sys.__stdout__
-        print(metrics['cpu_total_cycles']/10000)
+        print(metrics['cpu_total_time']*10000)
         sys.stdout = open(os.devnull, "w")
         
     except Exception as e: 
