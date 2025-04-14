@@ -19,10 +19,10 @@ def run_perf_stat(output_file):
         result = subprocess.run( 
             ["perf", "stat", "-r", "5", f"./{output_file}"],
             stderr=subprocess.PIPE,
-            stdout=subprocess.DEVNULL,  # ignore standard output
+            stdout=subprocess.PIPE,  # ignore standard output
             text=True
         )
-        perf_output = result.stderr
+        perf_output = result.stdout
         print("Perf output captured")
         print (f"perf_output: {perf_output}")
 
