@@ -23,8 +23,8 @@ def run_perf_stat(output_file):
             text=True
         )
         perf_output = result.stderr
-        #print("Perf output captured")
-        #print (f"perf_output: {perf_output}")
+        print("Perf output captured")
+        print (f"perf_output: {perf_output}")
 
         if output_file == "a.out": # CPU metrics 
             # extract cycles for both CPU types
