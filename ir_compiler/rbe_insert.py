@@ -17,7 +17,7 @@ def compile_c_source(c_source_file, output_file="a.out"):
 def run_perf_stat(output_file): 
     try: 
         result = subprocess.run( 
-            ["perf", "stat", "-r", "5", f"./{output_file}"],
+            ["perf", "stat", "-r", "100", f"./{output_file}"],
             stderr=subprocess.PIPE,
             stdout=subprocess.DEVNULL,  # ignore standard output
             text=True
@@ -112,11 +112,11 @@ def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_lin
             metric_string = f"0:{metrics['cpu_total_cycles']:.10f}:{metrics['cpu_total_time']:.10f}"
             formatted_rule = f'".*$0 {ir_tokens }"~{metric_string}'
         else:
-            formatted_rule = f'"{ir_tokens }"'
+            formatted_rule = f'"{ir_tokens}"'
         
         # insert the new rule at the specified line number 
         if insert_line - 1 < len(lines): 
-            lines.insert(insert_line - 1, formatted_rule + " = \n") 
+            lines.insert(insert_line - 1, formatted_rule + " = ") 
         else: 
             lines.append(formatted_rule + ";\n")
             
