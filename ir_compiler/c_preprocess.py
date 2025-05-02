@@ -48,7 +48,7 @@ def insert_rule(c_source:str, ir_tokens:list[str], rbe_file, rule_num:list) -> N
     
     rbe_insert.main_(c_source, ir_tokens, rbe_file, rule_num)
 
-def compile(c_source: str) -> list[str]:
+def compile(c_source: str, func_name) -> list[str]:
     
     if not os.path.exists(c_source): 
         #print(f"Error: {c_source} does not exist.")
@@ -63,10 +63,12 @@ def compile(c_source: str) -> list[str]:
         #print(f"Error compiling {c_source}.")
         return [] 
 
-    #print(f"Compiled {c_source} into IR tokens.\n")
-    #print(f"Compilation successful.\nIR tokens:\n{ir_tokens}")
-    return ir_tokens
+    for tok in ir_tokens:
+        if tok == "#FUNC":
+            if tok.name == func_name:
+                return tok.value
 
+    return []
 
 def preprocess(ir_tokens, args): 
     special_chars = set(['.', '+', '*', '|', '{', '$', '\\', '"']) # set of special characters that need to be escaped
@@ -101,10 +103,10 @@ def preprocess(ir_tokens, args):
     return " ".join(ir_tokens)
 
 # main function to compile the c source file, preprocess the IR tokens, and insert the rule into the rule database.
-def main_(c_source:str, args:dict, rbe_file:str, rule_num:int):
+def main_(c_source:str, args:dict, rbe_file:str, rule_num:int, func_name):
     #print(f"Preparing to insert rule into {rbe_file} at line {rule_num}...")
     
-    ir_tokens = compile(c_source)
+    ir_tokens = compile(c_source, func_name)
     
     # TODO: fix this stuff 
     #ir_tokens = preprocess(ir_tokens, args)
@@ -120,9 +122,12 @@ if __name__ == "__main__":
         sys.exit(1)
         
     c_source = sys.argv[1] # c source file 
+
+    num_args = sys.argv[2]
+    func_name = sys.argv[3]
     
     try: 
-        args = json.loads(sys.argv[2]) # arguments to replace in the IR tokens (args = '{"#1": "$1"}')
+        args = json.loads(sys.argv[4]) # arguments to replace in the IR tokens (args = '{"#1": "$1"}')
         if not isinstance(args, dict): 
             raise ValueError("Parsed args is not a dictionary.")
     
@@ -131,8 +136,8 @@ if __name__ == "__main__":
         sys.exit(1)
     
     
-    rbe_file = sys.argv[3]  # rule database file 
-    rule_num = int(sys.argv[4])  # rule number to insert the rule 
+    rbe_file = sys.argv[5]  # rule database file 
+    rule_num = int(sys.argv[6])  # rule number to insert the rule 
     
-    main_(c_source, args, rbe_file, rule_num)
+    main_(c_source, args, rbe_file, rule_num, func_name)
     sys.stdout = sys.__stdout__
