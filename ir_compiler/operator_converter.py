@@ -47,6 +47,11 @@ def convert(toks:Tokens):
 
     """
 
+    print("after assignments:")
+    print(toks)
+    print()
+
+
     # convert type casts to use cast
     toks = convert_type_casts(toks)
     """
@@ -62,6 +67,10 @@ def convert(toks:Tokens):
         sizeof,  goto
         #{varnum}, @{labelnum}
     """
+
+    print("after casts:")
+    print(toks)
+    print()
 
     # convert unary operators
     toks = convert_unary_operators(toks)
@@ -100,6 +109,9 @@ def convert(toks:Tokens):
         sizeof,  goto
         #{varnum}, @{labelnum}
     """
+    print("after calls")
+    print(toks)
+    print()
 
     # break operations into 1/line
     toks = break_operations(toks)
@@ -115,6 +127,10 @@ def convert(toks:Tokens):
         sizeof,  goto
         #{varnum}, @{labelnum}
     """
+
+    print("after breaking")
+    print(toks)
+    print()
 
     # remove un+ and un-
     toks = remove_unary_operators(toks)
@@ -323,6 +339,9 @@ def convert_assignment_operators(toks:Tokens):
                 insertion = strings_to_tokens(stuff_before + [base] + ["("])
                 func.insert_all(i+1, insertion)
 
+                print("Assignment Operator:")
+                print(insertion)
+
                 n = len(func)
             i += 1
 
@@ -340,6 +359,10 @@ def convert_type_casts(toks:Tokens):
         if func is None:
             continue
 
+        castable = set([
+            "(", "{"
+            ])
+
         i = 0
         n = len(func)
         while i < n:
@@ -347,7 +370,7 @@ def convert_type_casts(toks:Tokens):
             # =>
             # #TYPE cast x
             if func[i] == "#TYPE":
-                if i > 0 and func[i-1] == "(" and i + 1 < n and func[i+1] == ")":
+                if i > 0 and func[i-1] == "(" and i + 1 < n and func[i+1] == ")" and (i + 2 < n and (func[i+2] in castable or TOKEN_VARIABLE() == func[i+2])):
                     del func[i-1]
                     i -= 1
                     n -= 1
@@ -408,6 +431,10 @@ def convert_unary_operators(toks:Tokens):
                     func.insert(i, string_to_token("0"))
                     i += 1
                     n += 1
+            elif func[i] == "sizeof":
+                func.insert(i, string_to_token("0"))
+                i += 1
+                n += 1
             i += 1
     return toks
 
@@ -603,14 +630,19 @@ def break_line(toks, line, operators):
             post_stack.append(x)
         else:
             if len(post_stack) < 2:
+                print("Expression:")
+                print(expression)
+                print("Line:")
+                print(line)
                 x.fatal_error("Invalid operands")
             second = post_stack.pop()
             first = post_stack.pop()
 
             # TODO: INFER TYPE OF INTERMEDIATE RESULT HERE
+            print(x)
             new_var = VariableToken(f"#{toks.varnum}", x.filename, x.line_number, "inter", TypeToken("", "", 0, []))
 
-            addition = [new_var, "=", first, x, second, ";"]
+            addition = [new_var, string_to_token("="), first, x, second, string_to_token(";")]
 
             result.tokens += addition
 
@@ -798,7 +830,7 @@ def convert_logical_and(toks:Tokens):
         n = len(func)
         while i < n:
             if func[i] == "&&":
-                new_var = VariableToken(f"#{toks.varnum}", "", 0, string_to_token(""), string_to_token(""))
+                new_var = VariableToken(f"#{toks.varnum}", "", 0, string_to_token(""), TypeToken(Token("#TYPE", "", 0), "", 0, [string_to_token("long")]))
                 before = [new_var, "=", "0", ";", "if", "("]
                 middle = [")", "{", "if", "("]
                 after = [")", "{", new_var, "=", "1", ";", "}", "else", "{", "}", "}", "else", "{", "}"]
@@ -940,9 +972,9 @@ def remove_lognot(toks:Tokens):
     """
     x = 0 lognot a
     =>
-    #{newvar} = 0
+    #{newvar} = 1
     if (a){
-        #{newvar} = 1
+        #{newvar} = 0
     } else {}
     x = #{newvar}
     """
@@ -959,9 +991,9 @@ def remove_lognot(toks:Tokens):
         n = len(func)
         while i < n:
             if func[i] == "lognot":
-                new_var = VariableToken(f"#{toks.varnum}", "", 0, string_to_token(""), string_to_token(""))
+                new_var = VariableToken(f"#{toks.varnum}", "", 0, string_to_token(""), TypeToken("#TYPE", "", 0, [Token("long", "", 0)]))
                 original = func[i+1]
-                insertion = [new_var, "=", "0", ";", "if", "(", original, ")", "{", new_var, "=", "1", ";", "}", "else", "{", "}"]
+                insertion = [new_var, "=", "1", ";", "if", "(", original, ")", "{", new_var, "=", "0", ";", "}", "else", "{", "}"]
 
                 del func[i-1]
                 del func[i-1]

@@ -15,14 +15,14 @@ def convert(toks:Tokens):
     # convert else if(){} into else { if(){} }
     toks = handle_else_if(toks)
 
-    # break operations from if
-    toks = break_operations_from_ifs(toks)
-
     # convert labels
     toks = convert_labels(toks)
     
     # convert breaks, continues, and loops
     toks = convert_breaks_continues_and_loops(toks)
+
+    # break operations from if
+    toks = break_operations_from_ifs(toks)
 
     # TODO: handle array literals
     # TODO: handle compound literals
@@ -124,20 +124,21 @@ def break_operations_from_function_calls(toks:Tokens):
                     final_args = []
                     j = func.get_line_start(i)
                     k = i + 1
-                    for x in splitted:
-                        if len(x) == 0:
-                            func[i].fatal_error("Empty argument found")
-                        new_var = f"#{toks.varnum}"
-                        prepare = strings_to_tokens([new_var, "="]) + x.tokens + strings_to_tokens([";"])
-                        func.insert_all(j, prepare)
-                        n = len(func)
-                        j += len(prepare)
-                        k += len(prepare)
+                    if not (len(splitted) == 1 and len(splitted[0]) == 0):
+                        for x in splitted:
+                            if len(x) == 0:
+                                func[i].fatal_error("Empty argument found")
+                            new_var = f"#{toks.varnum}"
+                            prepare = strings_to_tokens([new_var, "="]) + x.tokens + strings_to_tokens([";"])
+                            func.insert_all(j, prepare)
+                            n = len(func)
+                            j += len(prepare)
+                            k += len(prepare)
 
-                        # TODO: give new_var the correct type
+                            # TODO: give new_var the correct type
 
-                        final_args.append(string_to_token(new_var))
-                        toks.varnum += 1
+                            final_args.append(string_to_token(new_var))
+                            toks.varnum += 1
 
                     dbg("final args")
                     dbg(final_args)
@@ -241,7 +242,7 @@ def break_operations_from_ifs(toks:Tokens):
                 if content is None:
                     func[i+1].fatal_error("Unmatched (")
 
-                the_variable = VariableToken(f"#{toks.varnum}", func[i].filename, func[i].line_number, "inner_if", TypeToken("#TYPE", func[i].filename, func[i].line_number, [Token("int", "", 0)]))
+                the_variable = VariableToken(f"#{toks.varnum}", "",  0, "inner_if", TypeToken("#TYPE", "", 0, [Token("int", "", 0)]))
                 insertion = strings_to_tokens([the_variable, "="] + content[1:-1] + [";"])
                 insertion2 = strings_to_tokens(["(", the_variable, ")"])
                 func.insert_all(i+1, insertion2)
@@ -409,7 +410,7 @@ def convert_breaks_continues_and_loops(toks:Tokens):
                 # place the jump back to the start at the end
                 func.insert_all(end, strings_to_tokens(["goto", before_label, ";"]))
                 # place the condition inside the if statement
-                func[i] = "if"
+                func[i].token = "if"
                 func.insert_all(i+1, condition)
                 n = len(func)
 

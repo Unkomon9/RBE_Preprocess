@@ -34,6 +34,9 @@ def simplify(toks:Tokens):
 
     # TODO: handle static and const
 
+    # add extra scopes around for loops to protect variable names
+    toks = add_extra_scopes(toks)
+
     dbg(toks)
     # generalize variables, assigning each a type
     toks = handle_generalization(toks)
@@ -125,6 +128,9 @@ def handle_primitive_types(toks:Tokens):
             "double",
             "signed",
             "unsigned",
+            "size_t",
+            "ssize_t",
+            "clock_t"
 
             "__builtin_va_list",
         ])
@@ -429,55 +435,24 @@ def handle_do_whiles(toks:Tokens):
 
 def add_extra_scopes(toks:Tokens):
     """
-    around every function, add an extra set of {}
+    around every for loop, add an extra {}
     """
-    type_tokens = set([
-        "#TYPE",
-        "#ENUM",
-        "#STRUCT",
-        "#UNION",
-        ])
-    builtins = set([
-            "#TYPE",
-            "#ENUM",
-            "#STRUCT",
-            "#UNION",
-            "#TYPEDEF",
-            ";", "{", "}", "(", ")", "~", "!", "%", "^",
-            "&", "*", "-", "+", "=", "[", "]", "|", "/",
-            ">", "<", ",", ".", "?", ":", "++", "--",
-            "return", "break", "if", "else", "for",
-            "while", "switch", "case", "default", "sizeof",
-            "continue", "static", "const", "goto", "do", "extern", "restrict"
-        ])
-
     i = 0
     n = len(toks)
-    any_var = TOKEN_VARIABLE()
     while i < n:
-        if toks[i] not in builtins and toks[i] != TOKEN_LITERAL():
-            if i + 1 < n and toks[i+1] == "(":
-                # this is a function.
-                # add the scopes
-                toks.insert(i+1, string_to_token("{"))
-                toks[i+1].line_number = -1
-                i += 1
-                n = len(toks)
-                j = toks.get_match_end(i+1, ")")
-                if j is None:
-                    toks[i+1].fatal_error("Unmatched (")
-                if j + 1 < n and toks[j+1] == "{":
-                    # need to get to end of {
-                    k = toks.get_match_end(j+1, "}")
-                    if k is None:
-                        toks[j+1].fatal_error("Unmatched {")
-                    toks.insert(k, string_to_token("}"))
-                    toks[k].line_number = -1
-                    n = len(toks)
-                else:
-                    # need to place right here
-                    toks.insert(j+1, string_to_token("}"))
-                    toks[j+1].line_number = -1
+        if toks[i] == "for":
+            toks.insert(i, string_to_token("{"))
+            n += 1 
+            i += 2
+            if i >= n:
+                toks[i-1].fatal_error("Expected ( after for")
+            end_condition = toks.get_match_end(i, ")")
+            if end_condition is None or end_condition + 1 >= n:
+                toks[i].fatal_error("Expected { after loop condition")
+            end_loop = toks.get_match_end(end_condition+1, "}")
+            toks.insert(end_loop, string_to_token("}"))
+            n += 1
+
 
         i += 1
     return toks
