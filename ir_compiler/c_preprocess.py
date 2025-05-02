@@ -116,12 +116,12 @@ def main_(c_source:str, args:dict, rbe_file:str, rule_num:int, func_name):
 
 
 if __name__ == "__main__":
-    sys.stdout = open(os.devnull, "w")
     if len(sys.argv) != 7:
         #print("Usage: python3 c_preprocess.py <c_source_file> <args> <rule_database_file> <rule_num>")
         sys.exit(1)
         
     c_source = sys.argv[1] # c source file 
+    sys.stdout = open(os.devnull, "w")
 
     num_args = sys.argv[2]
     func_name = sys.argv[3]
