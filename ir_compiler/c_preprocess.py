@@ -75,7 +75,7 @@ def preprocess(ir_tokens, args):
 
     for i in range(len(ir_tokens)):
         if ir_tokens[i][0] == "#":
-            ir_tokens[i].token = ir_tokens[i].token + "(" + "".join([x.token if hasattr(x, "token") else x for x in ir_tokens[i].type])
+            ir_tokens[i].token = ir_tokens[i].token + "(" + ("".join([x.token if hasattr(x, "token") else x for x in ir_tokens[i].type]))
     
     
     # # prints it out in one line 
