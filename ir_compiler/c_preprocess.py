@@ -74,8 +74,12 @@ def preprocess(ir_tokens, args):
     special_chars = set(['.', '+', '*', '|', '{', '$', '\\', '"']) # set of special characters that need to be escaped
 
     for i in range(len(ir_tokens)):
-        if ir_tokens[i][0] == "#":
-            ir_tokens[i].token = ir_tokens[i].token + "(" + ("".join([x.token if hasattr(x, "token") else x for x in ir_tokens[i].type]))
+        if ir_tokens[i][0] == "#" and len(ir_tokens[i].type) > 0 and "(" not in ir_tokens[i] and not (hasattr(ir_tokens[i], "type") and len(ir_tokens[i].type) > 0 and ir_tokens[i].type[0] == "}"):
+            print(ir_tokens[i], len(ir_tokens[i].type.value), ir_tokens[i].type, ir_tokens[i].type.value)
+            ir_tokens[i].token = ir_tokens[i].token + "("
+            for t in ir_tokens[i].type.value:
+                print('\t- ', t, t.token)
+                ir_tokens[i].token += t.token
     
     
     # # prints it out in one line 
@@ -104,7 +108,7 @@ def preprocess(ir_tokens, args):
     
     #print("\n\n\n")
     #print(f"\nPreprocess completed successfully.\nProcessed IR tokens:\n{ir_tokens}")
-    return " ".join(ir_tokens)
+    return " ".join([x.token if hasattr(x, "token") else x for x in ir_tokens])
 
 # main function to compile the c source file, preprocess the IR tokens, and insert the rule into the rule database.
 def main_(c_source:str, args:dict, rbe_file:str, rule_num:int, func_name):
@@ -112,7 +116,7 @@ def main_(c_source:str, args:dict, rbe_file:str, rule_num:int, func_name):
     
     ir_tokens = compile(c_source, func_name)
     
-    # TODO: fix this stuff 
+    # TODO: fix this stuff (bruh once again)
     ir_tokens = preprocess(ir_tokens, args)
     
     insert_rule(c_source, ir_tokens, rbe_file, rule_num)
@@ -125,7 +129,7 @@ if __name__ == "__main__":
         sys.exit(1)
         
     c_source = sys.argv[1] # c source file 
-    sys.stdout = open(os.devnull, "w")
+    #sys.stdout = open(os.devnull, "w")
 
     num_args = sys.argv[2]
     func_name = sys.argv[3]

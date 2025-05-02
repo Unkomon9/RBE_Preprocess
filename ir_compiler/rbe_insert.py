@@ -110,7 +110,7 @@ def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_lin
         # format the new rule with GPU metrics
         if metrics:
             metric_string = f"0:{metrics['cpu_total_cycles']:.10f}:{metrics['cpu_total_time']:.10f}"
-            formatted_rule = f'".*$0 {ir_tokens }"~{metric_string}'
+            formatted_rule = f'"{ir_tokens}"~{metric_string}'
         else:
             formatted_rule = f'"{ir_tokens}"'
         
