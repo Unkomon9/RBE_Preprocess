@@ -72,6 +72,10 @@ def compile(c_source: str, func_name) -> list[str]:
 
 def preprocess(ir_tokens, args): 
     special_chars = set(['.', '+', '*', '|', '{', '$', '\\', '"']) # set of special characters that need to be escaped
+
+    for i in range(len(ir_tokens)):
+        if ir_tokens[i][0] == "#":
+            ir_tokens[i].token = ir_tokens[i].token + "(" + "".join([x.token for x in ir_tokens[i].type])
     
     
     # # prints it out in one line 
@@ -82,21 +86,21 @@ def preprocess(ir_tokens, args):
     #print("\n\n\n")
     #print(f"\nPreprocessing IR tokens:\n{ir_tokens}")
 
-    for i in range(len(ir_tokens)):
-        old = ir_tokens[i]
+    #for i in range(len(ir_tokens)):
+    #    old = ir_tokens[i]
         
-        # escape special characters 
-        new_token = ""
-        for char in ir_tokens[i]:
-            if char in special_chars:
-                new_token += "\\"
-            new_token += char
-        ir_tokens[i] = new_token
+    #    # escape special characters 
+    #    new_token = ""
+    #    for char in ir_tokens[i]:
+    #        if char in special_chars:
+    #            new_token += "\\"
+    #        new_token += char
+    #    ir_tokens[i] = new_token
 
-        if ir_tokens[i] in args: 
-            ir_tokens[i] += args[ir_tokens[i]] # replace the IR token with the corresponding argument value 
+    #    if ir_tokens[i] in args: 
+    #        ir_tokens[i] += args[ir_tokens[i]] # replace the IR token with the corresponding argument value 
             
-            #print(f"Replaced token {old} -> {ir_tokens}")
+    #        #print(f"Replaced token {old} -> {ir_tokens}")
     
     #print("\n\n\n")
     #print(f"\nPreprocess completed successfully.\nProcessed IR tokens:\n{ir_tokens}")
@@ -109,7 +113,7 @@ def main_(c_source:str, args:dict, rbe_file:str, rule_num:int, func_name):
     ir_tokens = compile(c_source, func_name)
     
     # TODO: fix this stuff 
-    #ir_tokens = preprocess(ir_tokens, args)
+    ir_tokens = preprocess(ir_tokens, args)
     
     insert_rule(c_source, ir_tokens, rbe_file, rule_num)
     #print("Process completed.")     
