@@ -9,8 +9,8 @@ int gcd(int a, int b) {
 
 #include <stdio.h>
 #include <stdlib.h>
-int a = 17;
-int b = 13;
+int a = 100;
+int b = 85;
 
 int main() {
     int result = gcd(a, b);

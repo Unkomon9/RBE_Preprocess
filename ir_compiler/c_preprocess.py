@@ -6,6 +6,8 @@ import subprocess
 import re 
 import json # for parsing args from command line
 
+import tokens
+
         
 # ensure the rule database file has at least rule_num lines. 
 # if not, appends empty lines until the file has rule_num lines. 
@@ -63,16 +65,25 @@ def compile(c_source: str, func_name) -> list[str]:
         #print(f"Error compiling {c_source}.")
         return [] 
 
+    result = []
+    args = {}
+
     for tok in ir_tokens:
         if tok == "#FUNC":
             if tok.name == func_name:
-                return tok.value
+                external_varnum = 0
+                for j in range(len(tok.args)):
+                    if issubclass(type(tok.args[j]), tokens.VariableToken):
+                        args[tok.args[j]] = f"${external_varnum}"
+                        external_varnum += 1
+                result = tok.value
 
-    return []
+    return result, args
 
 def preprocess(ir_tokens, args): 
     special_chars = set(['.', '+', '*', '|', '{', '$', '\\', '"']) # set of special characters that need to be escaped
 
+    # add types to the tokens
     for i in range(len(ir_tokens)):
         if ir_tokens[i][0] == "#" and len(ir_tokens[i].type) > 0 and "(" not in ir_tokens[i] and not (hasattr(ir_tokens[i], "type") and len(ir_tokens[i].type) > 0 and ir_tokens[i].type[0] == "}"):
             print(ir_tokens[i], len(ir_tokens[i].type.value), ir_tokens[i].type, ir_tokens[i].type.value)
@@ -80,6 +91,11 @@ def preprocess(ir_tokens, args):
             for t in ir_tokens[i].type.value:
                 print('\t- ', t, t.token)
                 ir_tokens[i].token += t.token
+
+    # add external variables to the tokens
+    for i in range(len(ir_tokens)):
+        if ir_tokens[i] in args:
+            ir_tokens[i].token += args[ir_tokens[i]]
     
     
     # # prints it out in one line 
@@ -108,13 +124,13 @@ def preprocess(ir_tokens, args):
     
     #print("\n\n\n")
     #print(f"\nPreprocess completed successfully.\nProcessed IR tokens:\n{ir_tokens}")
-    return " ".join([x.token if hasattr(x, "token") else x for x in ir_tokens])
+    return " ".join([x.token if hasattr(x, "token") else x for x in ir_tokens[1:-1]])
 
 # main function to compile the c source file, preprocess the IR tokens, and insert the rule into the rule database.
 def main_(c_source:str, args:dict, rbe_file:str, rule_num:int, func_name):
     #print(f"Preparing to insert rule into {rbe_file} at line {rule_num}...")
     
-    ir_tokens = compile(c_source, func_name)
+    ir_tokens, args = compile(c_source, func_name)
     
     # TODO: fix this stuff (bruh once again)
     ir_tokens = preprocess(ir_tokens, args)
@@ -148,4 +164,5 @@ if __name__ == "__main__":
     rule_num = int(sys.argv[6])  # rule number to insert the rule 
     
     main_(c_source, args, rbe_file, rule_num, func_name)
+    print("Writing to output database")
     sys.stdout = sys.__stdout__

@@ -115,8 +115,11 @@ def insert_rule_into_database(rule_database_file, ir_tokens, metrics, insert_lin
             formatted_rule = f'"{ir_tokens}"'
         
         # insert the new rule at the specified line number 
-        if insert_line - 1 < len(lines): 
-            lines.insert(insert_line - 1, formatted_rule + " = ") 
+        if insert_line < len(lines): 
+            if len(lines[insert_line]) == 1:
+                lines.insert(insert_line, formatted_rule + ";") 
+            else:
+                lines.insert(insert_line, formatted_rule + " = ") 
         else: 
             lines.append(formatted_rule + ";\n")
             
