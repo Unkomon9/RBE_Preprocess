@@ -94,7 +94,7 @@ def preprocess(ir_tokens, args):
 
     # add external variables to the tokens
     for i in range(len(ir_tokens)):
-        if ir_tokens[i] in args:
+        if ir_tokens[i] in args and "$" not in ir_tokens[i].token:
             ir_tokens[i].token += args[ir_tokens[i]]
     
     
